@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Euclidean Rhythm Generator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="app">
+  <h1>Euclidean Rhythm Generator</h1>
+
+  <!-- Inputs -->
+  <div class="card">
+    <h2>Parameters</h2>
+    <div class="input-grid">
+      <div class="field">
+        <label>Steps (1–128)</label>
+        <input type="number" id="inp-steps" min="1" max="128" value="16" />
+      </div>
+      <div class="field">
+        <label>Beats (≤ steps)</label>
+        <input type="number" id="inp-beats" min="1" max="128" value="4" />
+      </div>
+      <div class="field">
+        <label>BPM (30–300)</label>
+        <input type="number" id="inp-bpm" min="30" max="300" value="120" />
+      </div>
+      <div class="field">
+        <label>Pulse interval</label>
+        <input type="number" id="inp-pulse" min="1" max="128" value="4" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Options -->
+  <div class="card">
+    <h2>Options</h2>
+    <div class="checks">
+      <label class="check-item">
+        <input type="checkbox" id="chk-fillgaps" />
+        Side-stick
+      </label>
+      <label class="check-item">
+        <input type="checkbox" id="chk-fillempty" />
+        Hi-hat
+      </label>
+      <label class="check-item">
+        <input type="checkbox" id="chk-click" />
+        Ride
+      </label>
+      <label class="check-item">
+        <input type="checkbox" id="chk-tambourine" />
+        Tambourine (accent start)
+      </label>
+      <label class="check-item">
+        <input type="checkbox" id="chk-start-snare" />
+        Start with snare
+      </label>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button id="btn-shift-left"  class="shift-btn" disabled>&larr; Shift</button>
+        <span   id="lbl-rotation" style="font-size:0.75rem;color:#9ca3af;min-width:48px;text-align:center;">+0</span>
+        <button id="btn-shift-right" class="shift-btn" disabled>Shift &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Buttons -->
+  <div class="card">
+    <div class="buttons">
+      <button id="btn-generate">Generate</button>
+      <button id="btn-play" disabled>Play</button>
+      <button id="btn-midi" disabled>Export MIDI</button>
+    </div>
+    <div class="status" id="status-line">No pattern generated.</div>
+  </div>
+
+  <!-- Record -->
+  <div class="card">
+    <h2>Record</h2>
+    <div class="buttons">
+      <button id="btn-rec" disabled>Rec</button>
+      <button id="btn-rec-clear" disabled>Clear</button>
+    </div>
+    <div class="status" id="rec-status">Generate a pattern to enable recording.</div>
+  </div>
+
+  <!-- Pattern display -->
+  <div class="card">
+    <h2>Pattern</h2>
+    <div id="pattern-display">—</div>
+    <div id="step-grid"></div>
+  </div>
+
+  <!-- Volumes -->
+  <div class="card">
+    <h2>Volumes</h2>
+    <div class="slider-grid">
+      <div class="slider-row">
+        <label>Master</label>
+        <input type="range" id="vol-master" min="0" max="1" step="0.01" value="0.8" />
+        <span class="slider-val" id="lbl-master">80%</span>
+        <button class="mute-btn" id="mute-master" title="Mute">M</button>
+      </div>
+      <div class="slider-row">
+        <label>Kick</label>
+        <input type="range" id="vol-kick" min="0" max="1" step="0.01" value="0.9" />
+        <span class="slider-val" id="lbl-kick">90%</span>
+        <button class="mute-btn" id="mute-kick" title="Mute">M</button>
+        <label class="upload-btn" id="upload-kick" title="Load sample">&#8593;<input type="file" accept="audio/*" class="sample-file" /></label>
+      </div>
+      <div class="slider-row">
+        <label>Snare</label>
+        <input type="range" id="vol-snare" min="0" max="1" step="0.01" value="0.8" />
+        <span class="slider-val" id="lbl-snare">80%</span>
+        <button class="mute-btn" id="mute-snare" title="Mute">M</button>
+        <label class="upload-btn" id="upload-snare" title="Load sample">&#8593;<input type="file" accept="audio/*" class="sample-file" /></label>
+      </div>
+      <div class="slider-row">
+        <label>Side stick</label>
+        <input type="range" id="vol-aux" min="0" max="1" step="0.01" value="0.7" />
+        <span class="slider-val" id="lbl-aux">70%</span>
+        <button class="mute-btn" id="mute-aux" title="Mute">M</button>
+        <label class="upload-btn" id="upload-aux" title="Load sample">&#8593;<input type="file" accept="audio/*" class="sample-file" /></label>
+      </div>
+      <div class="slider-row">
+        <label>Hi-hat</label>
+        <input type="range" id="vol-hh" min="0" max="1" step="0.01" value="0.5" />
+        <span class="slider-val" id="lbl-hh">50%</span>
+        <button class="mute-btn" id="mute-hh" title="Mute">M</button>
+        <label class="upload-btn" id="upload-hh" title="Load sample">&#8593;<input type="file" accept="audio/*" class="sample-file" /></label>
+      </div>
+      <div class="slider-row">
+        <label>Ride</label>
+        <input type="range" id="vol-click" min="0" max="1" step="0.01" value="0.6" />
+        <span class="slider-val" id="lbl-click">60%</span>
+        <button class="mute-btn" id="mute-click" title="Mute">M</button>
+        <label class="upload-btn" id="upload-click" title="Load sample">&#8593;<input type="file" accept="audio/*" class="sample-file" /></label>
+      </div>
+      <div class="slider-row">
+        <label>Tambourine</label>
+        <input type="range" id="vol-tambourine" min="0" max="1" step="0.01" value="0.7" />
+        <span class="slider-val" id="lbl-tambourine">70%</span>
+        <button class="mute-btn" id="mute-tambourine" title="Mute">M</button>
+        <label class="upload-btn" id="upload-tambourine" title="Load sample">&#8593;<input type="file" accept="audio/*" class="sample-file" /></label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="pattern.js"></script>
+<script src="player.js"></script>
+<script src="midi.js"></script>
+<script>
+(() => {
+  const player = new RhythmPlayer();
+  let initialized = false;
+  let rawPattern = '';   // before fill/invert
+  let displayPattern = ''; // after fill/invert (what's shown and played)
+
+  // Capture each completed loop iteration into the recording
+  player.onLoopComplete = (pattern, meta) => {
+    if (!isRecording) return;
+    const idx = recordedSegments.length;
+    recordedSegments.push(pattern);
+    const entry = { bpm: meta.bpm, pulseInterval: meta.pulseInterval, clickEnabled: meta.clickEnabled };
+    if (idx === 0) {
+      recordedTimeSig[0] = entry;
+    } else {
+      const prev = getActiveMeta(idx - 1);
+      if (entry.bpm !== prev.bpm || entry.pulseInterval !== prev.pulseInterval ||
+          entry.clickEnabled !== prev.clickEnabled || pattern.length !== recordedSegments[idx - 1].length) {
+        recordedTimeSig[idx] = entry;
+      }
+    }
+    updateRecordingStatus();
+  };
+
+  // --- DOM refs ---
+  const inpSteps   = document.getElementById('inp-steps');
+  const inpBeats   = document.getElementById('inp-beats');
+  const inpBpm     = document.getElementById('inp-bpm');
+  const inpPulse   = document.getElementById('inp-pulse');
+  const chkFillGaps    = document.getElementById('chk-fillgaps');
+  const chkFillEmpty   = document.getElementById('chk-fillempty');
+  const chkClick       = document.getElementById('chk-click');
+  const chkTambourine  = document.getElementById('chk-tambourine');
+  const chkStartSnare  = document.getElementById('chk-start-snare');
+  const btnShiftLeft   = document.getElementById('btn-shift-left');
+  const btnShiftRight  = document.getElementById('btn-shift-right');
+  const lblRotation    = document.getElementById('lbl-rotation');
+  const btnGenerate    = document.getElementById('btn-generate');
+  const btnPlay        = document.getElementById('btn-play');
+  const btnMidi        = document.getElementById('btn-midi');
+  let rotationOffset   = 0;
+  const statusLine    = document.getElementById('status-line');
+  const patternDisp   = document.getElementById('pattern-display');
+  const stepGrid      = document.getElementById('step-grid');
+  const btnRec        = document.getElementById('btn-rec');
+  const btnRecClear   = document.getElementById('btn-rec-clear');
+  const recStatus     = document.getElementById('rec-status');
+
+  // --- Recording state ---
+  let isRecording = false;
+  let recordedSegments = [];  // pattern string per completed iteration
+  let recordedTimeSig  = {};  // { [iterIndex]: { bpm, pulseInterval, clickEnabled } } — changes only
+
+  // --- Helpers ---
+  function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+  function getActiveMeta(i) {
+    const keys = Object.keys(recordedTimeSig).map(Number).sort((a, b) => a - b);
+    let m = null;
+    for (const k of keys) { if (k <= i) m = recordedTimeSig[k]; else break; }
+    return m || { bpm: 120, pulseInterval: 4, clickEnabled: false };
+  }
+
+  function updateRecordingStatus() {
+    const n = recordedSegments.length;
+    if (n === 0) {
+      recStatus.textContent = isRecording ? 'Recording…' : 'No recording.';
+      btnRecClear.disabled = true;
+      if (rawPattern) btnMidi.disabled = false;
+    } else {
+      recStatus.textContent = `${n} iteration${n === 1 ? '' : 's'} recorded${isRecording ? ' — recording…' : '.'}`;
+      btnRecClear.disabled = false;
+      btnMidi.disabled = false;
+    }
+  }
+
+  function getParams() {
+    const steps = clamp(parseInt(inpSteps.value) || 16, 1, 128);
+    const beats = clamp(parseInt(inpBeats.value) || 4, 1, steps);
+    const bpm   = clamp(parseInt(inpBpm.value)   || 120, 30, 300);
+    const pulse = clamp(parseInt(inpPulse.value)  || 2, 1, steps);
+    inpSteps.value = steps;
+    inpBeats.value = beats;
+    inpBpm.value   = bpm;
+    inpPulse.value = pulse;
+    return { steps, beats, bpm, pulse };
+  }
+
+  function applyFillAndInvert(base) {
+    let p = base;
+    if (chkFillGaps.checked) p = fillGaps(p);
+    if (rotationOffset !== 0 && p.length) {
+      const n = p.length;
+      // positive = right rotation, negative = left
+      const o = ((rotationOffset % n) + n) % n;
+      p = p.slice(n - o) + p.slice(0, n - o);
+    }
+    return p;
+  }
+
+  function renderPattern(p) {
+    if (!p) { patternDisp.innerHTML = '—'; return; }
+    patternDisp.innerHTML = p.split('').map(c => {
+      if (c === 'O') return `<span class="beat-O">O</span>`;
+      if (c === 'X') return `<span class="beat-X">X</span>`;
+      if (c === 'x') return `<span class="beat-x">x</span>`;
+      return `<span class="beat-o">o</span>`;
+    }).join('');
+  }
+
+  function buildStepGrid(p) {
+    stepGrid.innerHTML = '';
+    if (!p) return;
+    p.split('').forEach((c, i) => {
+      const cell = document.createElement('div');
+      cell.className = `step-cell on-${c}`;
+      cell.dataset.idx = i;
+      stepGrid.appendChild(cell);
+    });
+  }
+
+  function highlightStep(idx) {
+    stepGrid.querySelectorAll('.step-cell').forEach(el => el.classList.remove('active'));
+    const cell = stepGrid.querySelector(`[data-idx="${idx % displayPattern.length}"]`);
+    if (cell) cell.classList.add('active');
+  }
+
+  function updateStatus(p) {
+    if (!p) { statusLine.textContent = 'No pattern generated.'; return; }
+    const kick  = (p.match(/O/g) || []).length;
+    const snare = (p.match(/X/g) || []).length;
+    const lx    = (p.match(/x/g) || []).length;
+    const os    = (p.match(/o/g) || []).length;
+    statusLine.textContent =
+      `${p.length} steps  |  ${kick} kick (O)  |  ${snare} snare (X)  |  ${lx} fill (x)  |  ${os} empty (o)`;
+  }
+
+  // --- Generate ---
+  function generate() {
+    const { steps, beats } = getParams();
+    rotationOffset = 0;
+    lblRotation.textContent = '+0';
+    rawPattern = generatePattern(steps, beats, chkStartSnare.checked);
+    displayPattern = applyFillAndInvert(rawPattern);
+    renderPattern(displayPattern);
+    buildStepGrid(displayPattern);
+    updateStatus(displayPattern);
+    btnPlay.disabled = false;
+    btnMidi.disabled = false;
+    btnRec.disabled = false;
+    btnShiftLeft.disabled = false;
+    btnShiftRight.disabled = false;
+
+    if (player.isPlaying) {
+      const { bpm, pulse } = getParams();
+      player.update(displayPattern, bpm, chkClick.checked, pulse, chkFillEmpty.checked, chkTambourine.checked);
+    }
+  }
+
+  btnGenerate.addEventListener('click', generate);
+
+  [inpSteps, inpBeats].forEach(el => el.addEventListener('change', generate));
+
+  // --- Play / Stop ---
+  async function ensureInit() {
+    if (!initialized) {
+      await player.init();
+      // Apply initial volumes
+      Object.entries({
+        master: 'vol-master', kick: 'vol-kick', snare: 'vol-snare',
+        aux: 'vol-aux', hh: 'vol-hh', click: 'vol-click', tambourine: 'vol-tambourine'
+      }).forEach(([role, id]) => {
+        player.setVolume(role, parseFloat(document.getElementById(id).value));
+      });
+      initialized = true;
+    }
+  }
+
+  btnPlay.addEventListener('click', async () => {
+    await ensureInit();
+    if (player.isPlaying) {
+      if (isRecording) {
+        isRecording = false;
+        btnRec.textContent = 'Rec';
+        btnRec.classList.remove('recording');
+        updateRecordingStatus();
+      }
+      player.stop();
+      btnPlay.textContent = 'Play';
+      btnPlay.classList.remove('playing');
+      stepGrid.querySelectorAll('.step-cell').forEach(el => el.classList.remove('active'));
+    } else {
+      const { bpm, pulse } = getParams();
+      player.play(displayPattern, bpm, chkClick.checked, pulse, chkFillEmpty.checked, chkTambourine.checked);
+      btnPlay.textContent = 'Stop';
+      btnPlay.classList.add('playing');
+      startVisualizer();
+    }
+  });
+
+  // --- Record ---
+  btnRec.addEventListener('click', async () => {
+    if (isRecording) {
+      isRecording = false;
+      btnRec.textContent = 'Rec';
+      btnRec.classList.remove('recording');
+      player.stop();
+      btnPlay.textContent = 'Play';
+      btnPlay.classList.remove('playing');
+      stepGrid.querySelectorAll('.step-cell').forEach(el => el.classList.remove('active'));
+      updateRecordingStatus();
+    } else {
+      await ensureInit();
+      isRecording = true;
+      btnRec.textContent = 'Stop Rec';
+      btnRec.classList.add('recording');
+      updateRecordingStatus();
+      if (!player.isPlaying) {
+        const { bpm, pulse } = getParams();
+        player.play(displayPattern, bpm, chkClick.checked, pulse, chkFillEmpty.checked, chkTambourine.checked);
+        btnPlay.textContent = 'Stop';
+        btnPlay.classList.add('playing');
+        startVisualizer();
+      }
+    }
+  });
+
+  btnRecClear.addEventListener('click', () => {
+    recordedSegments = [];
+    recordedTimeSig  = {};
+    recStatus.textContent = 'Recording cleared.';
+    btnRecClear.disabled = true;
+    if (!rawPattern) btnMidi.disabled = true;
+  });
+
+  // --- Visualizer loop ---
+  function startVisualizer() {
+    let last = -1;
+    function tick() {
+      if (!player.isPlaying) return;
+      const idx = player.getAudibleStep();
+      if (idx !== -1 && idx !== last) { highlightStep(idx); last = idx; }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  // --- MIDI export ---
+  btnMidi.addEventListener('click', () => {
+    if (recordedSegments.length > 0) {
+      writeMidiRecording(recordedSegments, recordedTimeSig);
+    } else {
+      const { bpm, pulse } = getParams();
+      writeMidi(displayPattern, bpm, chkClick.checked, pulse);
+    }
+  });
+
+  // --- Live update on option/param changes while playing ---
+  function liveUpdate() {
+    if (!rawPattern) return;
+    displayPattern = applyFillAndInvert(rawPattern);
+    renderPattern(displayPattern);
+    buildStepGrid(displayPattern);
+    updateStatus(displayPattern);
+    if (player.isPlaying) {
+      const { bpm, pulse } = getParams();
+      player.update(displayPattern, bpm, chkClick.checked, pulse, chkFillEmpty.checked, chkTambourine.checked);
+    }
+  }
+
+  [chkFillGaps, chkFillEmpty, chkClick, chkTambourine].forEach(el =>
+    el.addEventListener('change', liveUpdate)
+  );
+
+  chkStartSnare.addEventListener('change', generate);
+
+  [inpBpm, inpPulse].forEach(el =>
+    el.addEventListener('change', liveUpdate)
+  );
+
+  btnShiftRight.addEventListener('click', () => {
+    if (!rawPattern) return;
+    rotationOffset = (rotationOffset + 1) % rawPattern.length;
+    lblRotation.textContent = (rotationOffset >= 0 ? '+' : '') + rotationOffset;
+    liveUpdate();
+  });
+
+  btnShiftLeft.addEventListener('click', () => {
+    if (!rawPattern) return;
+    rotationOffset = ((rotationOffset - 1) % rawPattern.length + rawPattern.length) % rawPattern.length;
+    // Display as negative offset for clarity (e.g. -3 instead of +13 on 16 steps)
+    const display = rotationOffset > rawPattern.length / 2 ? rotationOffset - rawPattern.length : rotationOffset;
+    lblRotation.textContent = (display >= 0 ? '+' : '') + display;
+    liveUpdate();
+  });
+
+  // --- Volume sliders + mute ---
+  const volMap = [
+    ['vol-master', 'lbl-master', 'mute-master', 'master'],
+    ['vol-kick',   'lbl-kick',   'mute-kick',   'kick'],
+    ['vol-snare',  'lbl-snare',  'mute-snare',  'snare'],
+    ['vol-aux',    'lbl-aux',    'mute-aux',    'aux'],
+    ['vol-hh',     'lbl-hh',     'mute-hh',     'hh'],
+    ['vol-click',      'lbl-click',      'mute-click',      'click'],
+    ['vol-tambourine', 'lbl-tambourine', 'mute-tambourine', 'tambourine'],
+  ];
+
+  // --- Sample upload ---
+  ['kick', 'snare', 'aux', 'hh', 'click', 'tambourine'].forEach(role => {
+    const uploadBtn = document.getElementById(`upload-${role}`);
+
+    uploadBtn.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      await ensureInit();
+      const ab = await file.arrayBuffer();
+      const audioBuf = await player.ctx.decodeAudioData(ab);
+      player.loadBuffer(role, audioBuf);
+      uploadBtn.title = file.name;
+      uploadBtn.classList.add('sample-loaded');
+    });
+  });
+
+  volMap.forEach(([sliderId, lblId, muteId, name]) => {
+    const slider   = document.getElementById(sliderId);
+    const lbl      = document.getElementById(lblId);
+    const muteBtn  = document.getElementById(muteId);
+    let muted = false;
+
+    slider.addEventListener('input', () => {
+      const v = parseFloat(slider.value);
+      lbl.textContent = Math.round(v * 100) + '%';
+      if (initialized && !muted) player.setVolume(name, v);
+    });
+
+    muteBtn.addEventListener('click', () => {
+      muted = !muted;
+      muteBtn.classList.toggle('muted', muted);
+      if (initialized) player.setVolume(name, muted ? 0 : parseFloat(slider.value));
+    });
+  });
+
+  // --- Keyboard shortcuts ---
+  document.addEventListener('keydown', async (e) => {
+    const tag = document.activeElement.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+    if (e.code === 'Space') {
+      e.preventDefault();
+      if (isRecording) {
+        btnRec.click();
+      } else {
+        btnPlay.click();
+      }
+    }
+
+    if (e.code === 'KeyR' && !e.metaKey && !e.ctrlKey) {
+      e.preventDefault();
+      if (!btnRec.disabled) btnRec.click();
+    }
+  });
+})();
+</script>
+</body>
+</html>
