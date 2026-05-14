@@ -4,7 +4,7 @@ const DRUM_KIT = {
   snare:      'assets/wav/rim.mp3',
   aux:        'assets/wav/side.mp3',
   hh:         'assets/wav/hh.mp3',
-  click:      'assets/wav/ride_bell.mp3',
+  subdivision: 'assets/wav/ride_bell.mp3',
   tambourine: 'assets/wav/tambourine.mp3',
 };
 
@@ -20,21 +20,21 @@ class RhythmPlayer {
     this.currentStep = 0;
     this.nextStepTime = 0;
     this.schedulerTimer = null;
-    this.onLoopComplete = null; // callback(pattern, { bpm, pulseInterval, clickEnabled })
+    this.onLoopComplete = null; // callback(pattern, { bpm, subdivision, subdivisionEnabled })
     this.stepQueue = []; // { time, step } pairs for latency-compensated visualizer
 
     // Live pattern — swapped at loop boundary
     this.activePattern = '';
     this.pendingPattern = null;
     this.pendingBpm = null;
-    this.pendingClick = null;
-    this.pendingPulseInterval = null;
+    this.pendingSubdivisionEnabled = null;
+    this.pendingSubdivision = null;
     this.pendingFillEmpty = null;
     this.pendingTambourine = null;
 
     this.bpm = 120;
-    this.clickEnabled = false;
-    this.pulseInterval = 2;
+    this.subdivisionEnabled = false;
+    this.subdivision = 4;
     this.fillEmpty = false;
     this.tambourine = false;
 
@@ -90,7 +90,7 @@ class RhythmPlayer {
   }
 
   _stepDuration() {
-    return 60 / (this.bpm * 4); // 16th-note steps at 4/4
+    return 60 / (this.bpm * this.subdivision);
   }
 
   _schedule() {
@@ -124,8 +124,8 @@ class RhythmPlayer {
         this._playAt('tambourine', t);
       }
 
-      if (this.clickEnabled && step % this.pulseInterval === 0) {
-        this._playAt('click', t);
+      if (this.subdivisionEnabled && step % this.subdivision === 0) {
+        this._playAt('subdivision', t);
       }
 
       this.currentStep++;
@@ -136,8 +136,8 @@ class RhythmPlayer {
         if (this.onLoopComplete) {
           this.onLoopComplete(this.activePattern, {
             bpm: this.bpm,
-            pulseInterval: this.pulseInterval,
-            clickEnabled: this.clickEnabled,
+            subdivision: this.subdivision,
+            subdivisionEnabled: this.subdivisionEnabled,
           });
         }
         if (this.pendingPattern !== null) {
@@ -149,13 +149,13 @@ class RhythmPlayer {
           this.bpm = this.pendingBpm;
           this.pendingBpm = null;
         }
-        if (this.pendingClick !== null) {
-          this.clickEnabled = this.pendingClick;
-          this.pendingClick = null;
+        if (this.pendingSubdivisionEnabled !== null) {
+          this.subdivisionEnabled = this.pendingSubdivisionEnabled;
+          this.pendingSubdivisionEnabled = null;
         }
-        if (this.pendingPulseInterval !== null) {
-          this.pulseInterval = this.pendingPulseInterval;
-          this.pendingPulseInterval = null;
+        if (this.pendingSubdivision !== null) {
+          this.subdivision = this.pendingSubdivision;
+          this.pendingSubdivision = null;
         }
         if (this.pendingFillEmpty !== null) {
           this.fillEmpty = this.pendingFillEmpty;
@@ -171,14 +171,14 @@ class RhythmPlayer {
     this.schedulerTimer = setTimeout(() => this._schedule(), this.SCHEDULE_INTERVAL);
   }
 
-  play(pattern, bpm, clickEnabled, pulseInterval, fillEmpty, tambourine = false) {
+  play(pattern, bpm, subdivisionEnabled, subdivision, fillEmpty, tambourine = false) {
     if (!this.ctx) return;
     if (this.ctx.state === 'suspended') this.ctx.resume();
 
     this.activePattern = pattern;
     this.bpm = bpm;
-    this.clickEnabled = clickEnabled;
-    this.pulseInterval = pulseInterval;
+    this.subdivisionEnabled = subdivisionEnabled;
+    this.subdivision = subdivision;
     this.fillEmpty = fillEmpty;
     this.tambourine = tambourine;
     this.currentStep = 0;
@@ -189,11 +189,11 @@ class RhythmPlayer {
   }
 
   // Queue a seamless update — applied at next loop boundary
-  update(pattern, bpm, clickEnabled, pulseInterval, fillEmpty, tambourine = false) {
+  update(pattern, bpm, subdivisionEnabled, subdivision, fillEmpty, tambourine = false) {
     this.pendingPattern = pattern;
     this.pendingBpm = bpm;
-    this.pendingClick = clickEnabled;
-    this.pendingPulseInterval = pulseInterval;
+    this.pendingSubdivisionEnabled = subdivisionEnabled;
+    this.pendingSubdivision = subdivision;
     this.pendingFillEmpty = fillEmpty;
     this.pendingTambourine = tambourine;
   }
@@ -216,8 +216,8 @@ class RhythmPlayer {
     this.schedulerTimer = null;
     this.pendingPattern = null;
     this.pendingBpm = null;
-    this.pendingClick = null;
-    this.pendingPulseInterval = null;
+    this.pendingSubdivisionEnabled = null;
+    this.pendingSubdivision = null;
     this.pendingFillEmpty = null;
     this.pendingTambourine = null;
     this.stepQueue = [];

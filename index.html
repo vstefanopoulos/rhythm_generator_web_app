@@ -6,13 +6,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Euclidean Rhythm Generator</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="canonical" href="https://vagelisstefanopoulos.eu/rhythm_generator/" />
 
-  <meta property="og:title" content="My Page Title">
-  <meta property="og:description" content="Short description">
-  <meta property="og:image" content="https://vagelisstefanopoulos.eu/rhythm_generator/page-preview.png">
-  <meta property="og:url" content="https://vagelisstefanopoulos.eu/rhythm_generator/index.html">
+  <meta name="description" content="Generate Euclidean rhythms, play them in the browser, and export to MIDI. Control BPM, steps, beats, and subdivision in real time." />
 
-  <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:title" content="Euclidean Rhythm Generator" />
+  <meta property="og:description" content="Generate Euclidean rhythms, play them in the browser, and export to MIDI." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://vagelisstefanopoulos.eu/rhythm_generator/page-preview.png" />
+  <meta property="og:url" content="https://vagelisstefanopoulos.eu/rhythm_generator/" />
+
+  <meta name="twitter:card" content="summary_large_image" />
 </head>
 
 <body>
@@ -24,19 +28,19 @@
       <h2>Parameters</h2>
       <div class="input-grid">
         <div class="field">
-          <label>Steps (1–128)</label>
+          <label for="inp-steps">Steps (1–128)</label>
           <input type="number" id="inp-steps" min="1" max="128" value="16" />
         </div>
         <div class="field">
-          <label>Beats (≤ steps)</label>
+          <label for="inp-beats">Beats (≤ steps)</label>
           <input type="number" id="inp-beats" min="1" max="128" value="4" />
         </div>
         <div class="field">
-          <label>BPM (30–300)</label>
+          <label for="inp-bpm">BPM (30–300)</label>
           <input type="number" id="inp-bpm" min="30" max="300" value="120" />
         </div>
         <div class="field">
-          <label>Pulse interval</label>
+          <label for="inp-pulse">Subdivision</label>
           <input type="number" id="inp-pulse" min="1" max="128" value="4" />
         </div>
       </div>
@@ -81,7 +85,7 @@
         <button id="btn-play" disabled>Play</button>
         <button id="btn-midi" disabled>Export MIDI</button>
       </div>
-      <div class="status" id="status-line">No pattern generated.</div>
+      <div class="status" id="status-line" aria-live="polite">No pattern generated.</div>
     </div>
 
     <!-- Record -->
@@ -91,14 +95,14 @@
         <button id="btn-rec" disabled>Rec</button>
         <button id="btn-rec-clear" disabled>Clear</button>
       </div>
-      <div class="status" id="rec-status">Generate a pattern to enable recording.</div>
+      <div class="status" id="rec-status" aria-live="polite">Generate a pattern to enable recording.</div>
     </div>
 
     <!-- Pattern display -->
     <div class="card">
       <h2>Pattern</h2>
-      <div id="pattern-display">—</div>
-      <div id="step-grid"></div>
+      <div id="pattern-display" aria-live="polite" aria-label="Pattern visualization">—</div>
+      <div id="step-grid" role="img" aria-label="Step sequencer grid"></div>
     </div>
 
     <!-- Volumes -->
@@ -106,58 +110,58 @@
       <h2>Volumes</h2>
       <div class="slider-grid">
         <div class="slider-row">
-          <label>Master</label>
+          <label for="vol-master">Master</label>
           <input type="range" id="vol-master" min="0" max="1" step="0.01" value="0.8" />
           <span class="slider-val" id="lbl-master">80%</span>
-          <button class="mute-btn" id="mute-master" title="Mute">M</button>
+          <button class="mute-btn" id="mute-master" aria-label="Mute master">M</button>
         </div>
         <div class="slider-row">
-          <label>Kick</label>
+          <label for="vol-kick">Kick</label>
           <input type="range" id="vol-kick" min="0" max="1" step="0.01" value="0.9" />
           <span class="slider-val" id="lbl-kick">90%</span>
-          <button class="mute-btn" id="mute-kick" title="Mute">M</button>
-          <label class="upload-btn" id="upload-kick" title="Load sample">&#8593;<input type="file" accept="audio/*"
-              class="sample-file" /></label>
+          <button class="mute-btn" id="mute-kick" aria-label="Mute kick">M</button>
+          <label class="upload-btn" id="upload-kick" title="Load kick sample">&#8593;<input type="file" accept="audio/*"
+              class="sample-file" aria-label="Load kick sample" /></label>
         </div>
         <div class="slider-row">
-          <label>Snare</label>
+          <label for="vol-snare">Snare</label>
           <input type="range" id="vol-snare" min="0" max="1" step="0.01" value="0.8" />
           <span class="slider-val" id="lbl-snare">80%</span>
-          <button class="mute-btn" id="mute-snare" title="Mute">M</button>
-          <label class="upload-btn" id="upload-snare" title="Load sample">&#8593;<input type="file" accept="audio/*"
-              class="sample-file" /></label>
+          <button class="mute-btn" id="mute-snare" aria-label="Mute snare">M</button>
+          <label class="upload-btn" id="upload-snare" title="Load snare sample">&#8593;<input type="file" accept="audio/*"
+              class="sample-file" aria-label="Load snare sample" /></label>
         </div>
         <div class="slider-row">
-          <label>Side stick</label>
+          <label for="vol-aux">Side stick</label>
           <input type="range" id="vol-aux" min="0" max="1" step="0.01" value="0.7" />
           <span class="slider-val" id="lbl-aux">70%</span>
-          <button class="mute-btn" id="mute-aux" title="Mute">M</button>
-          <label class="upload-btn" id="upload-aux" title="Load sample">&#8593;<input type="file" accept="audio/*"
-              class="sample-file" /></label>
+          <button class="mute-btn" id="mute-aux" aria-label="Mute side stick">M</button>
+          <label class="upload-btn" id="upload-aux" title="Load side stick sample">&#8593;<input type="file" accept="audio/*"
+              class="sample-file" aria-label="Load side stick sample" /></label>
         </div>
         <div class="slider-row">
-          <label>Hi-hat</label>
+          <label for="vol-hh">Hi-hat</label>
           <input type="range" id="vol-hh" min="0" max="1" step="0.01" value="0.5" />
           <span class="slider-val" id="lbl-hh">50%</span>
-          <button class="mute-btn" id="mute-hh" title="Mute">M</button>
-          <label class="upload-btn" id="upload-hh" title="Load sample">&#8593;<input type="file" accept="audio/*"
-              class="sample-file" /></label>
+          <button class="mute-btn" id="mute-hh" aria-label="Mute hi-hat">M</button>
+          <label class="upload-btn" id="upload-hh" title="Load hi-hat sample">&#8593;<input type="file" accept="audio/*"
+              class="sample-file" aria-label="Load hi-hat sample" /></label>
         </div>
         <div class="slider-row">
-          <label>Ride</label>
-          <input type="range" id="vol-click" min="0" max="1" step="0.01" value="0.6" />
-          <span class="slider-val" id="lbl-click">60%</span>
-          <button class="mute-btn" id="mute-click" title="Mute">M</button>
-          <label class="upload-btn" id="upload-click" title="Load sample">&#8593;<input type="file" accept="audio/*"
-              class="sample-file" /></label>
+          <label for="vol-subdivision">Ride</label>
+          <input type="range" id="vol-subdivision" min="0" max="1" step="0.01" value="0.6" />
+          <span class="slider-val" id="lbl-subdivision">60%</span>
+          <button class="mute-btn" id="mute-subdivision" aria-label="Mute ride">M</button>
+          <label class="upload-btn" id="upload-subdivision" title="Load ride sample">&#8593;<input type="file" accept="audio/*"
+              class="sample-file" aria-label="Load ride sample" /></label>
         </div>
         <div class="slider-row">
-          <label>Tambourine</label>
+          <label for="vol-tambourine">Tambourine</label>
           <input type="range" id="vol-tambourine" min="0" max="1" step="0.01" value="0.7" />
           <span class="slider-val" id="lbl-tambourine">70%</span>
-          <button class="mute-btn" id="mute-tambourine" title="Mute">M</button>
-          <label class="upload-btn" id="upload-tambourine" title="Load sample">&#8593;<input type="file"
-              accept="audio/*" class="sample-file" /></label>
+          <button class="mute-btn" id="mute-tambourine" aria-label="Mute tambourine">M</button>
+          <label class="upload-btn" id="upload-tambourine" title="Load tambourine sample">&#8593;<input type="file"
+              accept="audio/*" class="sample-file" aria-label="Load tambourine sample" /></label>
         </div>
       </div>
     </div>
@@ -178,13 +182,13 @@
         if (!isRecording) return;
         const idx = recordedSegments.length;
         recordedSegments.push(pattern);
-        const entry = { bpm: meta.bpm, pulseInterval: meta.pulseInterval, clickEnabled: meta.clickEnabled };
+        const entry = { bpm: meta.bpm, subdivision: meta.subdivision, subdivisionEnabled: meta.subdivisionEnabled };
         if (idx === 0) {
           recordedTimeSig[0] = entry;
         } else {
           const prev = getActiveMeta(idx - 1);
-          if (entry.bpm !== prev.bpm || entry.pulseInterval !== prev.pulseInterval ||
-            entry.clickEnabled !== prev.clickEnabled || pattern.length !== recordedSegments[idx - 1].length) {
+          if (entry.bpm !== prev.bpm || entry.subdivision !== prev.subdivision ||
+            entry.subdivisionEnabled !== prev.subdivisionEnabled || pattern.length !== recordedSegments[idx - 1].length) {
             recordedTimeSig[idx] = entry;
           }
         }
@@ -218,7 +222,7 @@
       // --- Recording state ---
       let isRecording = false;
       let recordedSegments = [];  // pattern string per completed iteration
-      let recordedTimeSig = {};  // { [iterIndex]: { bpm, pulseInterval, clickEnabled } } — changes only
+      let recordedTimeSig = {};  // { [iterIndex]: { bpm, subdivision, subdivisionEnabled } } — changes only
 
       // --- Helpers ---
       function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
@@ -227,7 +231,7 @@
         const keys = Object.keys(recordedTimeSig).map(Number).sort((a, b) => a - b);
         let m = null;
         for (const k of keys) { if (k <= i) m = recordedTimeSig[k]; else break; }
-        return m || { bpm: 120, pulseInterval: 4, clickEnabled: false };
+        return m || { bpm: 120, subdivision: 4, subdivisionEnabled: false };
       }
 
       function updateRecordingStatus() {
@@ -337,7 +341,7 @@
           // Apply initial volumes
           Object.entries({
             master: 'vol-master', kick: 'vol-kick', snare: 'vol-snare',
-            aux: 'vol-aux', hh: 'vol-hh', click: 'vol-click', tambourine: 'vol-tambourine'
+            aux: 'vol-aux', hh: 'vol-hh', subdivision: 'vol-subdivision', tambourine: 'vol-tambourine'
           }).forEach(([role, id]) => {
             player.setVolume(role, parseFloat(document.getElementById(id).value));
           });
@@ -472,12 +476,12 @@
         ['vol-snare', 'lbl-snare', 'mute-snare', 'snare'],
         ['vol-aux', 'lbl-aux', 'mute-aux', 'aux'],
         ['vol-hh', 'lbl-hh', 'mute-hh', 'hh'],
-        ['vol-click', 'lbl-click', 'mute-click', 'click'],
+        ['vol-subdivision', 'lbl-subdivision', 'mute-subdivision', 'subdivision'],
         ['vol-tambourine', 'lbl-tambourine', 'mute-tambourine', 'tambourine'],
       ];
 
       // --- Sample upload ---
-      ['kick', 'snare', 'aux', 'hh', 'click', 'tambourine'].forEach(role => {
+      ['kick', 'snare', 'aux', 'hh', 'subdivision', 'tambourine'].forEach(role => {
         const uploadBtn = document.getElementById(`upload-${role}`);
 
         uploadBtn.addEventListener('change', async (e) => {

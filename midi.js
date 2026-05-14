@@ -8,19 +8,18 @@ function _midiVarLen(v) {
   return out;
 }
 
-function writeMidi(pattern, bpm, clickEnabled, pulseInterval) {
+function writeMidi(pattern, bpm, subdivisionEnabled, subdivision) {
   const NOTE = {
-    X_kick: 36,  // C1
-    X_rim:  38,  // D1
-    x:      46,  // A#1
-    o_fill: 42,  // F#1
-    click:  53,  // F2 — GM Ride Bell
+    X_kick:      36,  // C1
+    X_rim:       38,  // D1
+    x:           37,  // C#1
+    o_fill:      42,  // F#1
+    subdivision: 53,  // F2 — GM Ride Bell
   };
 
   const TICKS_PER_BEAT = 480;
   const usPerBeat = Math.round(60_000_000 / bpm);
-  // Each step = 1/16th note = TICKS_PER_BEAT / 4 ticks
-  const STEP_TICKS = TICKS_PER_BEAT / 4;
+  const STEP_TICKS = TICKS_PER_BEAT / subdivision;
   const NOTE_LEN = Math.max(1, STEP_TICKS - 10);
 
   // --- MIDI helper writers ---
@@ -59,8 +58,8 @@ function writeMidi(pattern, bpm, clickEnabled, pulseInterval) {
       addNote(tick, NOTE.o_fill);
     }
 
-    if (clickEnabled && i % pulseInterval === 0) {
-      addNote(tick, NOTE.click);
+    if (subdivisionEnabled && i % subdivision === 0) {
+      addNote(tick, NOTE.subdivision);
     }
   }
 
@@ -118,16 +117,14 @@ function writeMidi(pattern, bpm, clickEnabled, pulseInterval) {
 
 // Multi-segment MIDI export for recordings.
 // segments: string[]  — one pattern string per recorded iteration
-// timeSigData: { [iterIndex]: { bpm, pulseInterval, clickEnabled } }
+// timeSigData: { [iterIndex]: { bpm, subdivision, subdivisionEnabled } }
 //   only entries where something changed; index 0 is always present.
 //   Step count (time signature meter) is derived from segments[i].length.
 function writeMidiRecording(segments, timeSigData) {
   if (!segments.length) return;
 
   const TICKS_PER_BEAT = 480;
-  const STEP_TICKS = TICKS_PER_BEAT / 4;
-  const NOTE_LEN = Math.max(1, STEP_TICKS - 10);
-  const NOTE = { O: 36, X: 38, x: 46, o: 42, click: 53 };
+  const NOTE = { O: 36, X: 38, x: 46, o: 42, subdivision: 53 };
 
   const sortedKeys = Object.keys(timeSigData).map(Number).sort((a, b) => a - b);
   function getMeta(i) {
@@ -139,10 +136,6 @@ function writeMidiRecording(segments, timeSigData) {
   }
 
   const events = [];
-  const addNote = (tick, note, vel = 100) => {
-    events.push({ tick, on: true,  note, vel });
-    events.push({ tick: tick + NOTE_LEN, on: false, note, vel: 0 });
-  };
 
   let currentTick = 0;
   let prevBpm = null;
@@ -151,7 +144,13 @@ function writeMidiRecording(segments, timeSigData) {
   for (let i = 0; i < segments.length; i++) {
     const pattern = segments[i];
     const n = pattern.length;
-    const { bpm, pulseInterval, clickEnabled } = getMeta(i);
+    const { bpm, subdivision, subdivisionEnabled } = getMeta(i);
+    const STEP_TICKS = TICKS_PER_BEAT / subdivision;
+    const NOTE_LEN = Math.max(1, STEP_TICKS - 10);
+    const addNote = (tick, note, vel = 100) => {
+      events.push({ tick, on: true,  note, vel });
+      events.push({ tick: tick + NOTE_LEN, on: false, note, vel: 0 });
+    };
 
     if (bpm !== prevBpm) {
       const us = Math.round(60_000_000 / bpm);
@@ -173,7 +172,7 @@ function writeMidiRecording(segments, timeSigData) {
       else if (ch === 'X') addNote(tick, NOTE.X);
       else if (ch === 'x') addNote(tick, NOTE.x);
       else if (ch === 'o') addNote(tick, NOTE.o);
-      if (clickEnabled && j % pulseInterval === 0) addNote(tick, NOTE.click);
+      if (subdivisionEnabled && j % subdivision === 0) addNote(tick, NOTE.subdivision);
     }
 
     currentTick += n * STEP_TICKS;
