@@ -331,6 +331,7 @@
   }
 
   btnPlay.addEventListener('click', async () => {
+    player.createContext(); // Safari: AudioContext must be created synchronously in gesture
     await ensureInit();
     if (player.isPlaying) {
       if (isRecording) {
@@ -354,6 +355,7 @@
 
   // --- Record ---
   btnRec.addEventListener('click', async () => {
+    player.createContext(); // Safari: AudioContext must be created synchronously in gesture
     if (isRecording) {
       isRecording = false;
       btnRec.textContent = 'Rec';
@@ -466,6 +468,7 @@
     uploadBtn.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;
+      player.createContext(); // Safari: AudioContext must be created synchronously in gesture
       await ensureInit();
       const ab = await file.arrayBuffer();
       const audioBuf = await player.ctx.decodeAudioData(ab);
