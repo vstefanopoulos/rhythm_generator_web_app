@@ -1,5 +1,7 @@
 // Minimal MIDI file writer — single track, one pattern loop
 
+function _gcd(a, b) { return b === 0 ? a : _gcd(b, a % b); }
+
 function _midiVarLen(v) {
   const out = [];
   out.unshift(v & 0x7f);
@@ -74,12 +76,10 @@ function writeMidi(pattern, bpm, subdivisionEnabled, subdivision) {
   const trackBytes = [];
   const tpush = (...b) => trackBytes.push(...b);
 
-  // Time signature: numerator = n steps, denominator = smallest power of 2 >= n/2
-  // e.g. 7→7/4 (4>=3.5), 9→9/8 (8>=4.5), 17→17/16 (16>=8.5), 23→23/16 (16>=11.5)
-  let timeSigDenom = 1;
-  while (timeSigDenom < n / 2) timeSigDenom <<= 1;
-  const timeSigDenomExp = Math.log2(timeSigDenom); // MIDI dd field: 2^dd = denominator
-  tpush(0x00, 0xff, 0x58, 0x04, n, timeSigDenomExp, 24, 8);
+  const _g = _gcd(n, subdivision);
+  const timeSigNum = n / _g;
+  const timeSigDenomExp = Math.log2((subdivision / _g) * 4);
+  tpush(0x00, 0xff, 0x58, 0x04, timeSigNum, timeSigDenomExp, 24, 8);
 
   // Tempo meta event at delta 0
   tpush(0x00, 0xff, 0x51, 0x03);
@@ -140,6 +140,7 @@ function writeMidiRecording(segments, timeSigData) {
   let currentTick = 0;
   let prevBpm = null;
   let prevSteps = null;
+  let prevSubdivision = null;
 
   for (let i = 0; i < segments.length; i++) {
     const pattern = segments[i];
@@ -158,11 +159,13 @@ function writeMidiRecording(segments, timeSigData) {
       prevBpm = bpm;
     }
 
-    if (n !== prevSteps) {
-      let denom = 1;
-      while (denom < n / 2) denom <<= 1;
-      events.push({ tick: currentTick, timesig: { n, denomExp: Math.log2(denom) } });
+    if (n !== prevSteps || subdivision !== prevSubdivision) {
+      const g = _gcd(n, subdivision);
+      const sigNum = n / g;
+      const sigDenomExp = Math.log2((subdivision / g) * 4);
+      events.push({ tick: currentTick, timesig: { n: sigNum, denomExp: sigDenomExp } });
       prevSteps = n;
+      prevSubdivision = subdivision;
     }
 
     for (let j = 0; j < n; j++) {
