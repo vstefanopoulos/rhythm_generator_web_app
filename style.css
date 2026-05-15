@@ -316,3 +316,25 @@ button:active { transform: scale(0.97); }
 .step-cell.on-x  { background: #a78bfa; }
 .step-cell.on-o  { background: #4b5563; }
 .step-cell.active { outline: 2px solid #fbbf24; outline-offset: 1px; }
+
+/* Footer */
+.site-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  padding: 1.5rem 1rem;
+  border-top: 1px solid #2a2a4a;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.site-footer a {
+  color: #7f9cf5;
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  text-decoration: underline;
+}
