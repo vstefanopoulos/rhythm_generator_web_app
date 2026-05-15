@@ -124,7 +124,7 @@ function writeMidiRecording(segments, timeSigData) {
   if (!segments.length) return;
 
   const TICKS_PER_BEAT = 480;
-  const NOTE = { O: 36, X: 38, x: 46, o: 42, subdivision: 53 };
+  const NOTE = { O: 36, X: 38, x: 37, o: 42, subdivision: 53 };
 
   const sortedKeys = Object.keys(timeSigData).map(Number).sort((a, b) => a - b);
   function getMeta(i) {
